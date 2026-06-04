@@ -1,0 +1,18 @@
+127.0.0.1 - - [03/Jun/2026 20:31:38] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:31:51] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:33:54] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:34:10] code 404, message File not found
+127.0.0.1 - - [03/Jun/2026 20:34:10] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [03/Jun/2026 20:34:11] code 404, message File not found
+127.0.0.1 - - [03/Jun/2026 20:34:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [03/Jun/2026 20:34:31] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:34:31] "GET /game.js HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:34:31] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:34:32] code 404, message File not found
+127.0.0.1 - - [03/Jun/2026 20:34:32] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [03/Jun/2026 20:37:18] code 404, message File not found
+127.0.0.1 - - [03/Jun/2026 20:37:18] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [03/Jun/2026 20:37:59] code 404, message File not found
+127.0.0.1 - - [03/Jun/2026 20:37:59] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [03/Jun/2026 20:49:33] code 404, message File not found
+127.0.0.1 - - [03/Jun/2026 20:49:33] "GET /favicon.ico HTTP/1.1" 404 -

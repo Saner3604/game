@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>果冻大逃亡 - 双人迷宫动作游戏</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <div>
+          <h1>果冻大逃亡</h1>
+          <p>双人迷宫动作挑战</p>
+        </div>
+      </div>
+      <div class="hud" id="hud" aria-live="polite">
+        <div class="hud-item"><span>关卡</span><strong id="hudLevel">1</strong></div>
+        <div class="hud-item"><span>倒计时</span><strong id="hudTimer">--</strong></div>
+        <div class="hud-item player-red"><span id="hudP1Label">P1 果实</span><strong id="hudP1">0</strong></div>
+        <div class="hud-item player-blue"><span id="hudP2Label">P2 果实</span><strong id="hudP2">0</strong></div>
+      </div>
+    </section>
+
+    <section class="game-stage">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+      <div class="screen active" id="menuScreen">
+        <div class="panel hero-panel">
+          <h2>果冻大逃亡</h2>
+          <p>收集同色水果、善用道具和机关，在伙伴的配合下冲进出口。</p>
+          <div class="button-row">
+            <button class="primary" id="singleBtn">单人闯关</button>
+            <button class="primary" id="coopBtn">合作模式</button>
+            <button class="secondary" id="versusBtn">PK 模式</button>
+          </div>
+          <div class="controls">
+            <span>P1: WASD 移动 / J 攻击</span>
+            <span>P2: 方向键移动 / Enter 攻击</span>
+          </div>
+          <button class="ghost rules-open" id="rulesBtn">查看游戏规则</button>
+        </div>
+      </div>
+
+      <div class="modal" id="rulesModal">
+        <div class="result-card rules-card">
+          <h2>游戏规则</h2>
+          <div class="rules">
+            <h3>游戏规则</h3>
+            <ul>
+              <li>单人闯关：在倒计时结束前吃完自己的水果，进入大门即可通关；被敌人抓到会失败。</li>
+              <li>合作模式：两名玩家各自吃完同色水果，大门才会开启；两人都进门才通关。</li>
+              <li>PK 模式：谁先吃完自己的水果并进入大门，谁赢得本局。</li>
+              <li>敌人靠近才会追击；碰到敌人会倒地，合作模式可由队友靠近救援。</li>
+              <li>特殊敌人会随关卡出现：穿墙幽灵能越过墙体，滑板快客会冲刺，棱镜炮手会蓄力发射贯穿地图的激光，飞跃怪会短暂起飞突袭。</li>
+              <li>道具水果：冰冻敌人、护盾、吸水果、加速；吃到加速道具后会自动快跑一段时间。</li>
+              <li>四名角色有不同性格和专属攻击特效；关卡越高，水果、敌人和机关压力越强。</li>
+            </ul>
+          </div>
+          <div class="button-row">
+            <button class="primary" id="closeRulesBtn">知道了</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="selectScreen">
+        <div class="panel select-panel">
+          <div class="select-head">
+            <h2>选择果冻外观</h2>
+            <button class="ghost" id="backToMenuBtn">返回</button>
+          </div>
+          <div class="selectors">
+            <div>
+              <h3>玩家 1</h3>
+              <div class="character-grid" id="p1Choices"></div>
+            </div>
+            <div>
+              <h3>玩家 2</h3>
+              <div class="character-grid" id="p2Choices"></div>
+            </div>
+          </div>
+          <button class="primary wide" id="startGameBtn">开始游戏</button>
+        </div>
+      </div>
+
+      <div class="modal" id="resultModal">
+        <div class="result-card">
+          <h2 id="resultTitle">胜利</h2>
+          <p id="resultText">准备进入下一关。</p>
+          <div class="button-row">
+            <button class="primary" id="nextBtn">下一关</button>
+            <button class="secondary" id="retryBtn">重试</button>
+            <button class="ghost" id="menuBtn">主菜单</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
