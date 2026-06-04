@@ -5,8 +5,10 @@ const ctx = canvas.getContext("2d");
 
 const screens = {
   menu: document.getElementById("menuScreen"),
+  level: document.getElementById("levelScreen"),
   select: document.getElementById("selectScreen"),
   modal: document.getElementById("resultModal"),
+  pause: document.getElementById("pauseModal"),
   rules: document.getElementById("rulesModal")
 };
 
@@ -23,7 +25,15 @@ const ui = {
   retryBtn: document.getElementById("retryBtn"),
   menuBtn: document.getElementById("menuBtn"),
   rulesBtn: document.getElementById("rulesBtn"),
-  closeRulesBtn: document.getElementById("closeRulesBtn")
+  closeRulesBtn: document.getElementById("closeRulesBtn"),
+  levelTitle: document.getElementById("levelSelectTitle"),
+  levelNote: document.getElementById("levelProgressNote"),
+  levelChoices: document.getElementById("levelChoices"),
+  levelContinueBtn: document.getElementById("levelContinueBtn"),
+  resumeBtn: document.getElementById("resumeBtn"),
+  pauseRetryBtn: document.getElementById("pauseRetryBtn"),
+  pauseRulesBtn: document.getElementById("pauseRulesBtn"),
+  pauseMenuBtn: document.getElementById("pauseMenuBtn")
 };
 
 const TILE = {
@@ -228,8 +238,10 @@ const LEVELS = [
 const keys = new Set();
 let activeMode = MODE.COOP;
 let selected = { p1: 0, p2: 1, p1Skin: "base", p2Skin: "base" };
+let selectedLevel = 1;
 let lastTime = performance.now();
 const SAVE_KEY = "jellyMazeProgressV2";
+const MAX_LEVEL_SELECT = 12;
 
 CHARACTERS[0].attackStyle = "lightning";
 CHARACTERS[1].attackStyle = "laser";
@@ -239,7 +251,7 @@ CHARACTERS[3].attackStyle = "grenade";
 CHARACTERS[3].mood = "机灵、爱绕后，最喜欢把小手雷丢进敌人堆里";
 
 function defaultProgress() {
-  return { bestSingleLevel: 0, pkWins: 0, unlockedSkins: ["base"] };
+  return { bestSingleLevel: 0, bestCoopLevel: 0, pkWins: 0, unlockedSkins: ["base"] };
 }
 
 function loadProgress() {
@@ -287,6 +299,22 @@ function applySkin(character, skinId) {
     skinId: safeSkin.id,
     skinLabel: safeSkin.label
   };
+}
+
+function modeLabel(mode) {
+  if (mode === MODE.SINGLE) return "单人闯关";
+  if (mode === MODE.COOP) return "合作模式";
+  return "PK 模式";
+}
+
+function bestLevelFor(mode) {
+  if (mode === MODE.SINGLE) return progress.bestSingleLevel || 0;
+  if (mode === MODE.COOP) return progress.bestCoopLevel || 0;
+  return Math.max(progress.bestSingleLevel || 0, progress.bestCoopLevel || 0);
+}
+
+function unlockedLevelFor(mode) {
+  return clamp(bestLevelFor(mode) + 1, 1, MAX_LEVEL_SELECT);
 }
 
 function clamp(value, min, max) {
@@ -1090,6 +1118,7 @@ class Game {
     this.state = "playing";
     setScreen(null);
     hideResult();
+    hidePause(false);
     this.updateHud();
   }
 
@@ -1458,6 +1487,9 @@ class Game {
     const unlockedBefore = new Set(progress.unlockedSkins);
     if (this.mode === MODE.SINGLE) {
       progress.bestSingleLevel = Math.max(progress.bestSingleLevel, this.level);
+    }
+    if (this.mode === MODE.COOP) {
+      progress.bestCoopLevel = Math.max(progress.bestCoopLevel || 0, this.level);
     }
     if (this.mode === MODE.VERSUS && this.stats.winner) {
       progress.pkWins += 1;
@@ -2325,8 +2357,10 @@ function setScreen(name) {
   if (name === null && document.activeElement instanceof HTMLElement) {
     document.activeElement.blur();
   }
+  if (name === "level") buildLevelChoices();
   if (name === "select") buildCharacterChoices();
   screens.menu.classList.toggle("active", name === "menu");
+  screens.level.classList.toggle("active", name === "level");
   screens.select.classList.toggle("active", name === "select");
   document.body.classList.toggle("single-select", name === "select" && activeMode === MODE.SINGLE);
 }
@@ -2349,6 +2383,44 @@ function showRules() {
 
 function hideRules() {
   screens.rules.classList.remove("show");
+}
+
+function showPause() {
+  if (game.state !== "playing") return;
+  game.state = "paused";
+  screens.pause.classList.add("show");
+}
+
+function hidePause(resume = true) {
+  screens.pause.classList.remove("show");
+  if (resume && game.state === "paused") game.state = "playing";
+}
+
+function buildLevelChoices() {
+  progress = loadProgress();
+  const unlocked = unlockedLevelFor(activeMode);
+  selectedLevel = clamp(selectedLevel || 1, 1, unlocked);
+  ui.levelTitle.textContent = `${modeLabel(activeMode)} · 选择关卡`;
+  ui.levelNote.innerHTML = `
+    <strong>关卡存档</strong>
+    <span>已通关最高：第 ${bestLevelFor(activeMode)} 关</span>
+    <span>当前可选择：1 - ${unlocked} 关</span>
+  `;
+  ui.levelChoices.innerHTML = "";
+
+  for (let level = 1; level <= MAX_LEVEL_SELECT; level += 1) {
+    const button = document.createElement("button");
+    const locked = level > unlocked;
+    button.type = "button";
+    button.className = `level-card ${selectedLevel === level ? "selected" : ""} ${locked ? "locked" : ""}`;
+    button.disabled = locked;
+    button.innerHTML = `<strong>${level}</strong><span>${locked ? "未解锁" : level === unlocked && level > 1 ? "新挑战" : "可挑战"}</span>`;
+    button.addEventListener("click", () => {
+      selectedLevel = level;
+      buildLevelChoices();
+    });
+    ui.levelChoices.appendChild(button);
+  }
 }
 
 function buildCharacterChoices() {
@@ -2444,37 +2516,66 @@ setScreen("menu");
 
 document.getElementById("singleBtn").addEventListener("click", () => {
   activeMode = MODE.SINGLE;
-  setScreen("select");
+  selectedLevel = clamp(selectedLevel, 1, unlockedLevelFor(activeMode));
+  setScreen("level");
 });
 
 document.getElementById("coopBtn").addEventListener("click", () => {
   activeMode = MODE.COOP;
-  setScreen("select");
+  selectedLevel = clamp(selectedLevel, 1, unlockedLevelFor(activeMode));
+  setScreen("level");
 });
 
 document.getElementById("versusBtn").addEventListener("click", () => {
   activeMode = MODE.VERSUS;
-  setScreen("select");
+  selectedLevel = clamp(selectedLevel, 1, unlockedLevelFor(activeMode));
+  setScreen("level");
 });
 
-document.getElementById("backToMenuBtn").addEventListener("click", () => setScreen("menu"));
-document.getElementById("startGameBtn").addEventListener("click", () => game.start(activeMode, 1));
+document.getElementById("levelBackBtn").addEventListener("click", () => setScreen("menu"));
+ui.levelContinueBtn.addEventListener("click", () => setScreen("select"));
+document.getElementById("backToMenuBtn").addEventListener("click", () => setScreen("level"));
+document.getElementById("startGameBtn").addEventListener("click", () => game.start(activeMode, selectedLevel));
 ui.rulesBtn.addEventListener("click", showRules);
 ui.closeRulesBtn.addEventListener("click", hideRules);
 screens.rules.addEventListener("click", (event) => {
   if (event.target === screens.rules) hideRules();
 });
+ui.resumeBtn.addEventListener("click", () => hidePause(true));
+ui.pauseRetryBtn.addEventListener("click", () => {
+  hidePause(false);
+  game.start(game.mode, game.level);
+});
+ui.pauseRulesBtn.addEventListener("click", showRules);
+ui.pauseMenuBtn.addEventListener("click", () => {
+  hidePause(false);
+  hideResult();
+  game.state = "menu";
+  setScreen("menu");
+});
 ui.nextBtn.addEventListener("click", () => game.start(game.mode, game.level + 1));
 ui.retryBtn.addEventListener("click", () => game.start(game.mode, game.level));
 ui.menuBtn.addEventListener("click", () => {
   hideResult();
+  hidePause(false);
   game.state = "menu";
   setScreen("menu");
 });
 
 window.addEventListener("keydown", (event) => {
   if (event.code === "Escape") {
-    hideRules();
+    if (screens.rules.classList.contains("show")) {
+      hideRules();
+      return;
+    }
+    if (game.state === "playing") {
+      showPause();
+      return;
+    }
+    if (game.state === "paused") {
+      hidePause(true);
+      return;
+    }
     return;
   }
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Space"].includes(event.code)) {

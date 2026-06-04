@@ -65,6 +65,18 @@
         </div>
       </div>
 
+      <div class="screen" id="levelScreen">
+        <div class="panel level-panel">
+          <div class="select-head">
+            <h2 id="levelSelectTitle">选择关卡</h2>
+            <button class="ghost" id="levelBackBtn">返回</button>
+          </div>
+          <div class="unlock-note" id="levelProgressNote"></div>
+          <div class="level-grid" id="levelChoices"></div>
+          <button class="primary wide" id="levelContinueBtn">选择角色</button>
+        </div>
+      </div>
+
       <div class="screen" id="selectScreen">
         <div class="panel select-panel">
           <div class="select-head">
@@ -93,6 +105,19 @@
             <button class="primary" id="nextBtn">下一关</button>
             <button class="secondary" id="retryBtn">重试</button>
             <button class="ghost" id="menuBtn">主菜单</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal" id="pauseModal">
+        <div class="result-card pause-card">
+          <h2>暂停</h2>
+          <p>游戏已暂停，可以继续本关、重新开始，或回到主菜单。</p>
+          <div class="button-row">
+            <button class="primary" id="resumeBtn">继续游戏</button>
+            <button class="secondary" id="pauseRetryBtn">重开本关</button>
+            <button class="ghost" id="pauseRulesBtn">游戏规则</button>
+            <button class="ghost" id="pauseMenuBtn">返回主菜单</button>
           </div>
         </div>
       </div>
