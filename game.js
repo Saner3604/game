@@ -373,6 +373,79 @@ class MazeMap {
     return { x: this.cols - 2, y: this.rows - 2 };
   }
 
+  clearDoorTiles() {
+    for (let y = 0; y < this.rows; y += 1) {
+      for (let x = 0; x < this.cols; x += 1) {
+        if (this.grid[y][x] === TILE.DOOR) this.grid[y][x] = TILE.FLOOR;
+      }
+    }
+  }
+
+  placeRandomDoor(players = []) {
+    this.clearDoorTiles();
+    const references = players.map((player) => ({ x: player.x, y: player.y }));
+    const candidates = this.doorCandidates(references);
+    const fallback = candidates.length ? candidates : [{ x: this.cols - 2, y: this.rows - 2 }];
+
+    const tiers = [
+      (c) => c.minDistance >= 4.2 && c.fair && (c.edge || c.degree <= 2),
+      (c) => c.minDistance >= 4.0 && c.fair,
+      (c) => c.minDistance >= 3.4 && (c.fair || c.edge),
+      (c) => c.minDistance >= 2.6,
+      () => true
+    ];
+
+    let options = fallback;
+    for (const tier of tiers) {
+      const filtered = candidates.filter(tier);
+      if (filtered.length) {
+        options = filtered;
+        break;
+      }
+    }
+
+    const chosen = options[randInt(0, options.length - 1)];
+    this.door = { x: chosen.x, y: chosen.y };
+    this.grid[chosen.y][chosen.x] = TILE.DOOR;
+  }
+
+  doorCandidates(references) {
+    const candidates = [];
+    for (let y = 1; y < this.rows - 1; y += 1) {
+      for (let x = 1; x < this.cols - 1; x += 1) {
+        if (this.grid[y][x] !== TILE.FLOOR) continue;
+        const center = { x: x + 0.5, y: y + 0.5 };
+        const distances = references.map((p) => Math.hypot(center.x - p.x, center.y - p.y));
+        const minDistance = distances.length ? Math.min(...distances) : Infinity;
+        const diff = distances.length >= 2 ? Math.abs(distances[0] - distances[1]) : 0;
+        const fair = distances.length < 2 || diff <= Math.max(2.6, minDistance * 0.55);
+        const edge = x <= 2 || y <= 2 || x >= this.cols - 3 || y >= this.rows - 3;
+        candidates.push({
+          x,
+          y,
+          minDistance,
+          fair,
+          edge,
+          degree: this.walkableNeighborCount(x, y)
+        });
+      }
+    }
+    return candidates;
+  }
+
+  walkableNeighborCount(x, y) {
+    const dirs = [
+      { x: 1, y: 0 },
+      { x: -1, y: 0 },
+      { x: 0, y: 1 },
+      { x: 0, y: -1 }
+    ];
+    return dirs.reduce((count, dir) => {
+      const tile = this.tileAt(x + dir.x, y + dir.y);
+      return count + (tile === TILE.FLOOR || tile === TILE.DOOR ? 1 : 0);
+    }, 0);
+  }
+
   tileAt(x, y) {
     if (x < 0 || y < 0 || x >= this.cols || y >= this.rows) return TILE.WALL;
     return this.grid[y][x];
@@ -1095,6 +1168,7 @@ class Game {
         new Player(1, p1Spawn.x, p1Spawn.y, p1Char, "#ff4d6d"),
         new Player(2, p2Spawn.x, p2Spawn.y, p2Char, "#4cc9f0")
       ];
+    this.map.placeRandomDoor(this.players);
 
     this.fruits = [];
     this.enemies = [];
